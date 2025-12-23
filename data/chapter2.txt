@@ -1,0 +1,135 @@
+---
+title: "Sensors & Perception Foundations"
+sidebar_position: 2
+---
+
+## Overview
+
+This chapter delves into the fundamental principles of sensors and perception in the context of Physical AI. We will explore various sensor types, understand how they enable robots to perceive their environment, examine ROS 2 message structures for sensor data, and dive into the mathematical concepts behind depth sensing.
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+- Classify different types of sensors used in Physical AI.
+- Understand the basic mechanisms of how humanoid robots perceive their surroundings.
+- Identify and interpret common ROS 2 sensor messages.
+- Explain the mathematical principles behind depth sensing.
+- Create diagrams to illustrate sensor data flow and perception concepts.
+
+## Sensor Taxonomy
+
+Physical AI systems rely on a diverse array of sensors to gather information about their environment. Here's a taxonomy of commonly used sensors:
+
+1.  **LiDAR (Light Detection and Ranging)**
+    -   **Function:** Measures distance to targets by illuminating them with laser light and measuring the reflection time.
+    -   **Output:** Point clouds (3D spatial data).
+    -   **Applications:** Mapping, localization, obstacle detection, navigation in autonomous vehicles and robotics.
+
+2.  **RGB Cameras (Red, Green, Blue)**
+    -   **Function:** Captures color images, similar to human eyes.
+    -   **Output:** 2D image data (pixel arrays).
+    -   **Applications:** Object recognition, visual odometry, scene understanding, visual servoing.
+
+3.  **Depth Cameras (e.g., Intel RealSense, Microsoft Kinect)**
+    -   **Function:** Provides per-pixel depth information in addition to color. Uses technologies like structured light, time-of-flight (ToF), or stereo vision.
+    -   **Output:** Depth maps, point clouds, RGB images.
+    -   **Applications:** 3D reconstruction, object manipulation, human-robot interaction, obstacle avoidance.
+
+4.  **IMU (Inertial Measurement Unit)**
+    -   **Function:** Measures orientation, angular velocity, and linear acceleration.
+    -   **Components:** Accelerometer, gyroscope, sometimes magnetometer.
+    -   **Output:** 3-axis acceleration, 3-axis angular velocity, 3-axis magnetic field (if magnetometer included).
+    -   **Applications:** Pose estimation, balancing, navigation, motion tracking.
+
+## How Perception Works for Humanoids
+
+Perception in humanoid robots is a complex process that mimics, in a simplified way, human sensory integration:
+
+1.  **Sensory Input:** Raw data from various sensors (cameras, depth sensors, tactile sensors, microphones) is collected.
+2.  **Preprocessing:** Noise reduction, calibration, and feature extraction are applied to the raw data.
+3.  **Feature Fusion:** Data from different sensors is combined to create a more comprehensive understanding of the environment (e.g., fusing RGB and depth for 3D object detection).
+4.  **Interpretation & Reasoning:** AI algorithms interpret the processed data to identify objects, estimate poses, recognize activities, and build an internal representation of the world.
+5.  **Action Planning:** The perceived information informs decision-making and action generation, completing the perception-action loop.
+
+## ROS 2 Sensor Messages
+
+ROS 2 (Robot Operating System 2) provides standardized message types for common sensor data, facilitating interoperability between different robot components and algorithms. Key message types include:
+
+-   **`sensor_msgs/msg/Image`:** Used for RGB, grayscale, or raw image data. Contains fields for image dimensions, encoding, and pixel data.
+-   **`sensor_msgs/msg/PointCloud2`:** Represents 3D point cloud data. Includes fields for points (x, y, z coordinates, and often color/intensity), header, and frame information.
+-   **`sensor_msgs/msg/LaserScan`:** Used for 2D range data from LiDARs or other laser scanners. Contains range values, angles, and intensity.
+-   **`sensor_msgs/msg/Imu`:** Contains data from an Inertial Measurement Unit, including orientation (quaternion), angular velocity (vector), and linear acceleration (vector).
+-   **`sensor_msgs/msg/JointState`:** Not a direct sensor in the same vein, but crucial for understanding the robot's own state (joint positions, velocities, efforts).
+
+## Depth Sensing Math (Triangulation Example)
+
+Many depth sensing techniques, especially stereo vision, rely on triangulation. Consider a simplified stereo setup:
+
+```
+    P (X, Y, Z)
+   / \
+  /   \
+ L1     R1    <-- Disparities (d)
+/       \
+C1-------C2   <-- Baseline (B)
+
+<-- Focal Length (f) -->
+```
+
+For a point `P` in 3D space, its projection onto the left camera (`C1`) and right camera (`C2`) appears at different pixel locations. The difference in these pixel locations is called **disparity (`d`)**.
+
+Given:
+-   `B`: Baseline (distance between the two camera centers)
+-   `f`: Focal length of the cameras
+-   `d`: Disparity (difference in x-coordinates of `P` in left and right images)
+
+The depth `Z` (distance from the cameras to point `P`) can be approximated using similar triangles:
+
+```
+Z = (B * f) / d
+```
+
+This simplified formula highlights how a larger baseline or focal length leads to more accurate depth measurements, while larger disparity indicates closer objects.
+
+## Diagrams
+
+### Sensor Data Flow (Mermaid)
+
+```mermaid
+graph TD
+    A[Physical World] --> B(Sensors: LiDAR, RGB, Depth, IMU);
+    B --> C{Raw Sensor Data};
+    C --> D[Preprocessing: Noise Filter, Calibration];
+    D --> E[Feature Extraction: Edges, Keypoints, Point Clouds];
+    E --> F{Data Fusion: Multi-Sensor Integration};
+    F --> G[Perception Algorithms: SLAM, Object Detection, Pose Estimation];
+    G --> H(Environmental Model & State Estimation);
+    H --> I[Robot Controller: Action Planning];
+```
+
+### IMU Coordinate System (ASCII)
+
+```
+      Z (Up)
+      ^
+      |
+      |
+      +-------> X (Forward)
+     /
+    /
+   Y (Left)
+```
+
+## Exercises & Quizzes
+
+1.  **Question:** Describe the primary output of a LiDAR sensor and how it differs from an RGB camera's output. When would you prefer one over the other in a robotics application?
+2.  **Question:** A robot uses an IMU for balancing. If the robot suddenly tilts forward, what kind of data would the accelerometer and gyroscope within the IMU report?
+3.  **Diagramming Task:** Create a simple ASCII diagram illustrating the concept of stereo vision, showing two cameras and how they perceive a single point in 3D space.
+4.  **True/False:** ROS 2 `sensor_msgs/msg/Image` can only be used for grayscale images.
+    -   A) True
+    -   B) False
+5.  **Multiple Choice:** Which of the following is a key foundation of embodied intelligence, directly related to continuous interaction with the environment?
+    -   A) Big Data Analysis
+    -   B) Perception-Action Loops
+    -   C) Cloud Computing
+    -   D) Symbolic Reasoning

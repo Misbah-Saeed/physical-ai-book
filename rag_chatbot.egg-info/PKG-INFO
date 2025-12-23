@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: rag-chatbot
+Version: 0.1.0
+Requires-Python: >=3.10
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: openai
+Requires-Dist: qdrant-client
+Requires-Dist: python-dotenv

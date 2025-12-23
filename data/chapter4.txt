@@ -1,0 +1,249 @@
+---
+title: "URDF & Humanoid Modeling"
+sidebar_position: 4
+---
+
+## Overview
+
+This chapter introduces the Unified Robot Description Format (URDF) and its application in modeling humanoid robots. We will explore the fundamental components of a URDF file, understand how to define links, joints, and sensors, and delve into the basics of robot kinematics essential for controlling articulated robots.
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+- Understand the purpose and structure of URDF files.
+- Define robot links, joints, and their properties.
+- Integrate sensor definitions into a URDF model.
+- Comprehend the basics of forward and inverse kinematics.
+- Create simple URDF fragments and visualize robot models.
+- Apply your knowledge through practical exercises.
+
+## URDF Basics
+
+**URDF (Unified Robot Description Format)** is an XML file format used in ROS to describe a robot's kinematic and dynamic properties. It specifies the robot's physical structure, including its geometry, inertia, joints, and sensors. URDF is crucial for visualization, simulation (e.g., in Gazebo), motion planning, and control.
+
+A URDF file starts with a `<robot>` tag, which contains `<link>` and `<joint>` elements.
+
+### Links
+
+A **Link** represents a rigid body part of the robot (e.g., a torso, an arm segment, a wheel). Each link has:
+-   **Visual:** Describes the geometric appearance (mesh, cylinder, box) and material properties for visualization.
+-   **Collision:** Defines the geometry used for collision detection.
+-   **Inertial:** Specifies the mass, center of mass, and inertia matrix for dynamic simulation.
+
+Example Link:
+```xml
+<link name="base_link">
+  <visual>
+    <geometry>
+      <box size="0.6 0.4 0.2"/>
+    </geometry>
+    <material name="blue">
+      <color rgba="0 0 0.8 1"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.6 0.4 0.2"/>
+    </geometry>
+  </collision>
+  <inertial>
+    <mass value="10.0"/>
+    <origin xyz="0 0 0"/>
+    <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+  </inertial>
+</link>
+```
+
+### Joints
+
+A **Joint** connects two links, defining their relative motion. Each joint has:
+-   **Type:** Specifies the kind of motion (e.g., `revolute`, `continuous`, `prismatic`, `fixed`, `floating`, `planar`).
+-   **Parent/Child Links:** Defines which links the joint connects.
+-   **Origin:** Specifies the pose of the child link relative to the parent link.
+-   **Axis:** Defines the axis of rotation for revolute/continuous joints or translation for prismatic joints.
+-   **Limits:** (For `revolute`/`prismatic` types) Defines the range of motion, velocity, and effort limits.
+
+Example Joint:
+```xml
+<joint name="base_to_arm_joint" type="revolute">
+  <parent link="base_link"/>
+  <child link="arm_link"/>
+  <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  <axis xyz="0 0 1"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="10"/>
+</joint>
+```
+
+### Sensors
+
+While URDF itself doesn't directly define active sensor behavior, it can include sensor *mounts* and their geometric properties. For actual sensor simulation and data publishing, ROS packages often use Xacro (a macro language for XML) and Gazebo plugins. Sensors are typically defined as a `link` representing the sensor body, with a `joint` attaching it to the robot. Gazebo then uses specific plugins to simulate the sensor's output.
+
+Example Sensor Mount (simplified):
+```xml
+<link name="camera_link">
+  <visual>
+    <geometry>
+      <box size="0.05 0.05 0.05"/>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="base_to_camera_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="camera_link"/>
+  <origin xyz="0.2 0 0.1" rpy="0 0 0"/>
+</joint>
+```
+
+## Humanoid URDF Example (Conceptual)
+
+A humanoid robot URDF would combine many links and joints to represent the torso, head, arms, and legs. Each limb would have multiple `revolute` joints to allow for complex movements, similar to a human.
+
+```xml
+<?xml version="1.0"?>
+<robot name="humanoid_robot">
+
+  <!-- Base Link (Torso) -->
+  <link name="torso_link">
+    ...
+  </link>
+
+  <!-- Neck Joint and Head Link -->
+  <joint name="torso_to_neck_joint" type="revolute">
+    <parent link="torso_link"/>
+    <child link="neck_link"/>
+    <origin xyz="0 0 0.2"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0" effort="50" velocity="5"/>
+  </joint>
+  <link name="neck_link">
+    ...
+  </link>
+  <joint name="neck_to_head_joint" type="revolute">
+    <parent link="neck_link"/>
+    <child link="head_link"/>
+    <origin xyz="0 0 0.1"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.5" upper="0.5" effort="50" velocity="5"/>
+  </joint>
+  <link name="head_link">
+    ...
+    <!-- Camera sensor mounted on head -->
+    <link name="head_camera_link">
+      ...
+    </link>
+    <joint name="head_to_camera_joint" type="fixed">
+      <parent link="head_link"/>
+      <child link="head_camera_link"/>
+      <origin xyz="0.05 0 0.05"/>
+    </joint>
+  </link>
+
+  <!-- Right Arm (similar for left arm) -->
+  <joint name="torso_to_right_shoulder_joint" type="revolute">
+    <parent link="torso_link"/>
+    <child link="right_upper_arm_link"/>
+    <origin xyz="0 -0.15 0.1"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-2.0" upper="2.0" effort="100" velocity="10"/>
+  </joint>
+  <link name="right_upper_arm_link">
+    ...
+  </link>
+  <joint name="right_elbow_joint" type="revolute">
+    <parent link="right_upper_arm_link"/>
+    <child link="right_forearm_link"/>
+    <origin xyz="0 0 -0.2"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="2.5" effort="80" velocity="8"/>
+  </joint>
+  <link name="right_forearm_link">
+    ...
+  </link>
+
+  <!-- ... and so on for legs and other components ... -->
+
+</robot>
+```
+
+## Robot Kinematics
+
+**Kinematics** is the study of motion without considering the forces that cause it. In robotics, it focuses on the geometric relationships between the joints and links of a robot and the position and orientation of its end-effector.
+
+### Forward Kinematics (FK)
+
+**Forward Kinematics** calculates the position and orientation of the robot's end-effector (e.g., a hand, a gripper) given the values of all its joint angles (or prismatic joint extensions). It maps from joint space to task space.
+
+```
+Joint Angles (q) -> Transformation Matrices (T) -> End-Effector Pose (x, y, z, roll, pitch, yaw)
+```
+
+Mathematically, this involves multiplying a series of transformation matrices, one for each joint and link, from the robot's base to the end-effector. Denavit-Hartenberg (DH) parameters are a common convention for systematically assigning coordinate frames and deriving these transformation matrices.
+
+### Inverse Kinematics (IK)
+
+**Inverse Kinematics** is the inverse problem: calculating the required joint angles to achieve a desired position and orientation of the end-effector. It maps from task space to joint space.
+
+```
+End-Effector Pose (x, y, z, roll, pitch, yaw) -> Joint Angles (q)
+```
+
+IK is generally much harder to solve than FK because:
+-   Multiple solutions: There might be several joint configurations for a single end-effector pose.
+-   No solution: The desired pose might be unreachable (outside the robot's workspace).
+-   Singularities: Certain configurations can lead to infinite solutions or loss of degrees of freedom.
+
+IK solvers often employ iterative numerical methods (e.g., Jacobian transpose, pseudo-inverse Jacobian, Newton-Raphson) or analytical solutions for simpler robot structures.
+
+## Diagrams
+
+### URDF Structure (Mermaid)
+
+```mermaid
+graph TD
+    A[Robot] --> B(Link 1);
+    A --> C(Joint 1);
+    C --> D(Link 2);
+    D --> E(Joint 2);
+    E --> F(Link 3);
+    subgraph Link 1 Details
+        B_V(Visual)
+        B_C(Collision)
+        B_I(Inertial)
+    end
+    subgraph Joint 1 Details
+        C_P(Parent Link)
+        C_C(Child Link)
+        C_O(Origin)
+        C_A(Axis)
+        C_T(Type)
+    end
+```
+
+### Forward Kinematics (ASCII)
+
+```
+Base ---------> Joint 1 ---------> Link 1 ---------> Joint 2 ---------> Link 2 ---------> End-Effector
+       (q1)                  (T1)                 (q2)                  (T2)
+
+Given q1, q2 -> Calculate End-Effector Pose
+```
+
+### Inverse Kinematics (ASCII)
+
+```
+Base ---------> Joint ? ---------> Link ? ---------> Joint ? ---------> Link ? ---------> End-Effector
+       (??)                  (??)                 (??)                  (??)
+
+Given End-Effector Pose -> Calculate q1, q2
+```
+
+## Exercises & Quizzes
+
+1.  **Question:** What are the three main components that make up a URDF link, and what information does each provide? Explain their importance in both visualization and simulation.
+2.  **Code Task:** Write a URDF fragment for a simple two-link robotic arm. Define two `revolute` joints and ensure both links have visual and inertial properties. Assume the first joint connects to a fixed `world` link.
+3.  **Question:** Imagine a humanoid robot wants to pick up a specific object. Which kinematic problem (Forward or Inverse) is more critical for determining the joint angles needed to reach the object, and why?
+4.  **Diagramming Task:** Create a Mermaid diagram illustrating a robot with a `base_link`, `shoulder_joint`, `arm_link`, `elbow_joint`, and `forearm_link`. Show the parent-child relationships clearly.
+5.  **True/False:** A `fixed` joint in URDF allows for one degree of freedom of motion between two links.
+    -   A) True
+    -   B) False

@@ -1,0 +1,14 @@
+
+[project]
+name = "rag-chatbot"
+version = "0.1.0"
+description = "RAG chatbot using Cohere embeddings and Qdrant"
+requires-python = ">=3.12"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+cohere = "^5.20.0"
+qdrant-client = "^1.16.1"
+requests = "^2.32.5"
+trafilatura = "^2.0.0"
+python-dotenv = "^1.0.0"
